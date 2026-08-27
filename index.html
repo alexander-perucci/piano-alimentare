@@ -1,0 +1,803 @@
+<div id="app">
+<style>
+  #app {
+    --paper: #F1F0EC;
+    --ink: #17171A;
+    --crimson: #A31621;
+    --crimson-soft: #E8D5D6;
+    --steel: #6E7273;
+    --amber: #B8801F;
+    --line: #D6D4CE;
+    --green: #3F6B4A;
+    --card: #FBFAF8;
+
+    background: var(--paper);
+    color: var(--ink);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+    font-size: 15px;
+    line-height: 1.45;
+    padding: 0 0 40px;
+    margin: 0;
+    -webkit-font-smoothing: antialiased;
+  }
+  #app *, #app *::before, #app *::after { box-sizing: border-box; }
+  #app .mono {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-variant-numeric: tabular-nums;
+  }
+  #app .wrap { max-width: 860px; margin: 0 auto; padding: 0 16px; }
+
+  /* ---- header ---- */
+  #app .hero { border-bottom: 1px solid var(--line); padding: 22px 0 18px; }
+  #app .eyebrow {
+    font-size: 10.5px; letter-spacing: .18em; text-transform: uppercase;
+    color: var(--steel); font-weight: 600;
+  }
+  #app h1 {
+    font-size: clamp(26px, 6vw, 36px); margin: 6px 0 2px; font-weight: 800;
+    letter-spacing: -.025em; line-height: 1.05;
+  }
+  #app .sub { color: var(--steel); font-size: 13px; }
+
+  #app .track { margin-top: 18px; }
+  #app .track-row {
+    display: flex; justify-content: space-between; align-items: baseline;
+    font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: var(--steel);
+  }
+  #app .track-bar {
+    height: 8px; background: var(--crimson-soft); border-radius: 99px;
+    margin: 7px 0 6px; overflow: hidden; position: relative;
+  }
+  #app .track-fill {
+    height: 100%; background: var(--crimson); border-radius: 99px;
+    transition: width .5s cubic-bezier(.2,.8,.2,1);
+  }
+  #app .track-nums { display: flex; justify-content: space-between; font-size: 12px; color: var(--steel); }
+  #app .track-nums b { color: var(--ink); }
+
+  /* ---- tabs ---- */
+  #app .tabs {
+    display: flex; gap: 4px; border-bottom: 1px solid var(--line);
+    position: sticky; top: 0; background: var(--paper); z-index: 20; padding-top: 10px;
+  }
+  #app .tab {
+    appearance: none; border: 0; background: none; cursor: pointer;
+    font: inherit; font-size: 12.5px; font-weight: 700; letter-spacing: .07em;
+    text-transform: uppercase; color: var(--steel);
+    padding: 10px 12px; border-bottom: 2px solid transparent; margin-bottom: -1px;
+  }
+  #app .tab[aria-selected="true"] { color: var(--crimson); border-bottom-color: var(--crimson); }
+  #app .tab:focus-visible { outline: 2px solid var(--crimson); outline-offset: 2px; }
+
+  /* ---- day rail ---- */
+  #app .rail {
+    display: flex; gap: 6px; overflow-x: auto; padding: 16px 0 4px;
+    scrollbar-width: none;
+  }
+  #app .rail::-webkit-scrollbar { display: none; }
+  #app .day {
+    flex: 0 0 auto; appearance: none; cursor: pointer; font: inherit;
+    background: var(--card); border: 1px solid var(--line); border-radius: 10px;
+    padding: 8px 12px 9px; text-align: center; min-width: 62px;
+    transition: all .16s ease;
+  }
+  #app .day .d-name {
+    font-size: 10.5px; letter-spacing: .12em; text-transform: uppercase;
+    font-weight: 700; color: var(--steel);
+  }
+  #app .day .d-tag { font-size: 9.5px; margin-top: 3px; color: var(--steel); letter-spacing: .04em; }
+  #app .day[aria-pressed="true"] {
+    background: var(--ink); border-color: var(--ink);
+  }
+  #app .day[aria-pressed="true"] .d-name { color: #fff; }
+  #app .day[aria-pressed="true"] .d-tag { color: #B8B5B0; }
+  #app .day.train .d-tag { color: var(--crimson); font-weight: 700; }
+  #app .day.train[aria-pressed="true"] .d-tag { color: #F0A6AC; }
+  #app .day:focus-visible { outline: 2px solid var(--crimson); outline-offset: 2px; }
+
+  /* ---- macro budget ---- */
+  #app .budget {
+    background: var(--card); border: 1px solid var(--line); border-radius: 12px;
+    padding: 14px 16px; margin: 14px 0 18px;
+  }
+  #app .budget-head {
+    display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;
+  }
+  #app .budget-head .lbl {
+    font-size: 10.5px; letter-spacing: .14em; text-transform: uppercase;
+    color: var(--steel); font-weight: 700;
+  }
+  #app .reset {
+    appearance: none; border: 1px solid var(--line); background: transparent;
+    font: inherit; font-size: 11px; color: var(--steel); cursor: pointer;
+    border-radius: 6px; padding: 3px 9px;
+  }
+  #app .reset:hover { border-color: var(--crimson); color: var(--crimson); }
+  #app .bars { display: grid; gap: 9px; }
+  #app .bar-line { display: grid; grid-template-columns: 62px 1fr auto; gap: 10px; align-items: center; }
+  #app .bar-line .name {
+    font-size: 10.5px; letter-spacing: .1em; text-transform: uppercase;
+    color: var(--steel); font-weight: 700;
+  }
+  #app .bar-track { height: 7px; background: #E4E2DC; border-radius: 99px; overflow: hidden; }
+  #app .bar-fill { height: 100%; border-radius: 99px; transition: width .35s ease; }
+  #app .bar-line .val { font-size: 12px; color: var(--steel); min-width: 78px; text-align: right; }
+  #app .bar-line .val b { color: var(--ink); }
+
+  /* ---- meals ---- */
+  #app .meal {
+    display: flex; gap: 12px; align-items: flex-start;
+    background: var(--card); border: 1px solid var(--line); border-radius: 12px;
+    padding: 13px 14px; margin-bottom: 8px; cursor: pointer;
+    transition: border-color .16s ease, opacity .16s ease;
+  }
+  #app .meal:hover { border-color: #BEBBB4; }
+  #app .meal.done { opacity: .5; border-color: var(--green); }
+  #app .box {
+    flex: 0 0 auto; width: 20px; height: 20px; border-radius: 6px;
+    border: 1.5px solid #C2BFB8; margin-top: 1px; position: relative; background: #fff;
+    transition: all .16s ease;
+  }
+  #app .meal.done .box { background: var(--green); border-color: var(--green); }
+  #app .meal.done .box::after {
+    content: ""; position: absolute; left: 6px; top: 2px; width: 5px; height: 10px;
+    border: solid #fff; border-width: 0 2px 2px 0; transform: rotate(42deg);
+  }
+  #app .meal-body { flex: 1; min-width: 0; }
+  #app .slot {
+    font-size: 10px; letter-spacing: .14em; text-transform: uppercase;
+    color: var(--crimson); font-weight: 800;
+  }
+  #app .meal.done .slot { color: var(--green); }
+  #app .title { font-weight: 700; font-size: 14.5px; margin: 2px 0 3px; letter-spacing: -.01em; }
+  #app .items { font-size: 13px; color: var(--steel); }
+  #app .macros {
+    font-size: 11px; color: var(--steel); margin-top: 6px;
+    display: flex; gap: 12px; flex-wrap: wrap;
+  }
+  #app .macros span b { color: var(--ink); }
+  #app .note {
+    display: inline-block; margin-top: 7px; font-size: 11px; padding: 3px 8px;
+    background: #F3E6C8; color: #6B4E10; border-radius: 5px; letter-spacing: .01em;
+  }
+  #app .note.cold { background: #DCE7EC; color: #1F4A5C; }
+
+  /* ---- shopping ---- */
+  #app .cat {
+    font-size: 10.5px; letter-spacing: .16em; text-transform: uppercase;
+    color: var(--crimson); font-weight: 800; margin: 22px 0 8px;
+    padding-bottom: 5px; border-bottom: 1px solid var(--line);
+  }
+  #app .item {
+    display: flex; align-items: center; gap: 11px; padding: 9px 2px;
+    border-bottom: 1px solid #E6E4DE; cursor: pointer;
+  }
+  #app .item.done .item-name { text-decoration: line-through; color: #A9A6A0; }
+  #app .item-name { flex: 1; font-size: 14px; }
+  #app .qty { font-size: 12.5px; color: var(--steel); }
+  #app .item.done .qty { color: #BDBAB4; }
+
+  /* ---- progress tab ---- */
+  #app .grid2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; margin: 16px 0; }
+  #app .stat {
+    background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 13px 14px;
+  }
+  #app .stat .k {
+    font-size: 10px; letter-spacing: .13em; text-transform: uppercase; color: var(--steel); font-weight: 700;
+  }
+  #app .stat .v { font-size: 25px; font-weight: 800; letter-spacing: -.03em; margin-top: 4px; }
+  #app .stat .u { font-size: 12px; color: var(--steel); font-weight: 500; letter-spacing: 0; }
+  #app .stat.warn { border-color: #E0C089; background: #FBF5E7; }
+  #app .stat .flag { font-size: 11px; color: var(--amber); margin-top: 3px; font-weight: 600; }
+
+  #app .logform { display: flex; gap: 8px; margin: 8px 0 16px; flex-wrap: wrap; }
+  #app input[type="number"], #app input[type="date"] {
+    font: inherit; font-size: 14px; padding: 9px 11px; border: 1px solid var(--line);
+    border-radius: 9px; background: #fff; color: var(--ink); min-width: 0;
+  }
+  #app input[type="number"] { width: 108px; }
+  #app .btn {
+    appearance: none; border: 0; background: var(--crimson); color: #fff;
+    font: inherit; font-weight: 700; font-size: 13.5px; padding: 9px 18px;
+    border-radius: 9px; cursor: pointer; letter-spacing: .01em;
+  }
+  #app .btn:hover { background: #8A121B; }
+  #app .btn:focus-visible, #app input:focus-visible { outline: 2px solid var(--crimson); outline-offset: 2px; }
+
+  #app table { width: 100%; border-collapse: collapse; font-size: 13.5px; }
+  #app th {
+    text-align: left; font-size: 10px; letter-spacing: .12em; text-transform: uppercase;
+    color: var(--steel); font-weight: 700; padding: 7px 8px; border-bottom: 1px solid var(--line);
+  }
+  #app td { padding: 9px 8px; border-bottom: 1px solid #E9E7E1; }
+  #app td.neg { color: var(--green); font-weight: 700; }
+  #app td.pos { color: var(--crimson); font-weight: 700; }
+  #app .empty { color: var(--steel); font-size: 13.5px; padding: 18px 2px; }
+
+  #app .callout {
+    border-left: 3px solid var(--crimson); padding: 11px 0 11px 14px;
+    margin: 20px 0; font-size: 13.5px; color: #45444A;
+  }
+  #app .callout b { color: var(--ink); }
+  #app .prep-step {
+    display: flex; gap: 12px; padding: 11px 0; border-bottom: 1px solid #E9E7E1; align-items: flex-start;
+  }
+  #app .prep-n {
+    flex: 0 0 auto; width: 24px; height: 24px; border-radius: 50%; background: var(--ink);
+    color: #fff; font-size: 12px; font-weight: 700; display: flex;
+    align-items: center; justify-content: center;
+  }
+  #app .sess-sub {
+    font-size: 12.5px; color: var(--steel); margin: -4px 0 8px; font-style: italic;
+  }
+  #app .chips {
+    display: flex; flex-wrap: wrap; gap: 5px; margin: -2px 0 14px; padding-left: 32px;
+  }
+  #app .chip {
+    appearance: none; cursor: pointer; font: inherit; font-size: 11.5px;
+    background: transparent; color: var(--steel);
+    border: 1px solid var(--line); border-radius: 99px; padding: 4px 10px;
+    transition: all .14s ease;
+  }
+  #app .chip:hover { border-color: var(--crimson); color: var(--crimson); }
+  #app .chip.on { background: var(--crimson); border-color: var(--crimson); color: #fff; font-weight: 600; }
+  #app .chip:focus-visible { outline: 2px solid var(--crimson); outline-offset: 2px; }
+  #app .hidden { display: none; }
+  @media (prefers-reduced-motion: reduce) {
+    #app * { transition: none !important; }
+  }
+</style>
+
+<div class="wrap">
+  <div class="hero">
+    <div class="eyebrow">Piano alimentare · Prog. 1 — 2 allenamenti/settimana</div>
+    <h1>Alexander</h1>
+    <div class="sub">Senza lattosio · ~2.300 kcal · ~175 g proteine · BIA 08.08.2026</div>
+    <div class="track">
+      <div class="track-row"><span>Partenza</span><span>Obiettivo</span></div>
+      <div class="track-bar"><div class="track-fill" id="trackFill" style="width:0%"></div></div>
+      <div class="track-nums">
+        <span class="mono"><b>92,5</b> kg</span>
+        <span id="trackNow" class="mono">—</span>
+        <span class="mono"><b>85,9</b> kg</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="tabs" role="tablist">
+    <button class="tab" role="tab" aria-selected="true" data-tab="piano">Piano</button>
+    <button class="tab" role="tab" aria-selected="false" data-tab="spesa">Spesa</button>
+    <button class="tab" role="tab" aria-selected="false" data-tab="prep">Roadmap</button>
+    <button class="tab" role="tab" aria-selected="false" data-tab="progressi">Progressi</button>
+  </div>
+
+  <!-- PIANO -->
+  <section id="tab-piano">
+    <div class="rail" id="rail"></div>
+    <div class="budget">
+      <div class="budget-head">
+        <span class="lbl" id="budgetLbl">Consumato oggi</span>
+        <button class="reset" id="resetDay">Azzera giorno</button>
+      </div>
+      <div class="bars" id="bars"></div>
+    </div>
+    <div id="meals"></div>
+    <div class="callout" id="dayNote"></div>
+    <div class="callout" style="border-color:var(--steel)"><b>La colazione la scegli tu ogni mattina.</b> Le sette opzioni sotto il primo pasto valgono tutte 600–650 kcal e 40 g di proteine, quindi le scambi senza rifare nessun conto. Tocca quella che ti va e i totali si aggiornano.</div>
+  </section>
+
+  <!-- SPESA -->
+  <section id="tab-spesa" class="hidden">
+    <div class="budget" style="margin-top:16px">
+      <div class="budget-head">
+        <span class="lbl">Carrello</span>
+        <button class="reset" id="resetSpesa">Azzera lista</button>
+      </div>
+      <div class="bars">
+        <div class="bar-line">
+          <span class="name">Presi</span>
+          <div class="bar-track"><div class="bar-fill" id="spesaFill" style="width:0%;background:var(--green)"></div></div>
+          <span class="val mono" id="spesaVal">0 / 0</span>
+        </div>
+      </div>
+    </div>
+    <div id="spesaList"></div>
+    <div class="callout" style="margin-top:22px">
+      <b>Tra parentesi il consumo reale della settimana</b> con le colazioni di default: il resto
+      avanza per la settimana dopo, quindi dalla seconda spesa in poi salti quasi tutta la dispensa.
+      Se cambi colazione cambiano soprattutto uova, kefir e pane.
+    </div>
+
+  <!-- PREP -->
+  <section id="tab-prep" class="hidden">
+    <div class="callout" style="margin-top:18px">
+      <b>Qui le quantità sono a crudo, quelle da comprare.</b> Le porzioni nel piatto stanno nella scheda Piano. Tre sessioni, tutte di sera: cucini la cena e insieme i pranzi che seguono, quindi niente resta in frigo più di due giorni. Al mattino non prepari mai niente.
+    </div>
+    <table style="margin:6px 0 26px">
+      <thead><tr><th></th><th>Quando</th><th>Durata</th><th>Cosa cucini (crudo)</th><th>Copre</th></tr></thead>
+      <tbody>
+        <tr><td><b style="color:var(--crimson)">Sessione 1</b></td><td>Domenica sera</td><td class="mono">45 min</td><td>660 g pollo · 500 g patate · 1 kg verdure · 350 g riso · 300 g farro · 4 uova</td><td>Cena di domenica + pranzi di lunedì e martedì</td></tr>
+        <tr><td><b style="color:var(--crimson)">Sessione 2</b></td><td>Martedì sera</td><td class="mono">20 min</td><td>600 g straccetti di manzo · 900 g patate</td><td>Cena di martedì + pranzi di mercoledì e giovedì</td></tr>
+        <tr><td><b style="color:var(--crimson)">Sessione 3</b></td><td>Giovedì sera</td><td class="mono">5 min</td><td>90 g cous cous · 150 g tonno · 100 g ceci</td><td>Pranzo di venerdì</td></tr>
+        <tr style="color:var(--steel)"><td>Cena normale</td><td>Lunedì sera</td><td class="mono">—</td><td>200 g tacchino · 250 g patate · 200 g broccoli</td><td>Solo la cena di lunedì</td></tr>
+        <tr style="color:var(--steel)"><td>Cena normale</td><td>Mercoledì sera</td><td class="mono">—</td><td>180 g salmone · 250 g patate dolci · spinaci</td><td>Solo la cena di mercoledì</td></tr>
+        <tr style="color:var(--steel)"><td>Cena normale</td><td>Giovedì sera</td><td class="mono">—</td><td>220 g merluzzo · 300 g patate</td><td>Solo la cena di giovedì</td></tr>
+        <tr style="color:var(--steel)"><td>Cena normale</td><td>Venerdì sera</td><td class="mono">—</td><td>220 g orata o branzino · verdure al forno</td><td>Solo la cena di venerdì</td></tr>
+      </tbody>
+    </table>
+    <div id="prepList"></div>
+  </section>
+
+  <!-- PROGRESSI -->
+  <section id="tab-progressi" class="hidden">
+    <div class="grid2">
+      <div class="stat"><div class="k">Massa muscolare</div><div class="v mono">41,8 <span class="u">kg</span></div><div class="flag" style="color:var(--green)">Sopra la media</div></div>
+      <div class="stat"><div class="k">Grasso corporeo</div><div class="v mono">21,1 <span class="u">%</span></div><div class="flag">Target 15–16%</div></div>
+      <div class="stat warn"><div class="k">Grasso viscerale</div><div class="v mono">9 <span class="u">/ 9</span></div><div class="flag">Limite alto del range</div></div>
+      <div class="stat warn"><div class="k">Vita / fianchi</div><div class="v mono">0,95</div><div class="flag">Range 0,80–0,90</div></div>
+      <div class="stat"><div class="k">Metabolismo basale</div><div class="v mono">1946 <span class="u">kcal</span></div></div>
+      <div class="stat"><div class="k">Punteggio InBody</div><div class="v mono">82 <span class="u">/100</span></div></div>
+    </div>
+
+    <div class="cat">Registro peso</div>
+    <div class="logform">
+      <input type="date" id="wDate" aria-label="Data pesata">
+      <input type="number" id="wKg" step="0.1" placeholder="kg" aria-label="Peso in kg">
+      <button class="btn" id="addW">Registra</button>
+    </div>
+    <div id="wTable"></div>
+
+    <div class="cat">Salvataggio</div>
+    <div class="callout" style="border-color:var(--steel)">
+      Il salvataggio automatico non è garantito. <b>Copia il codice qui sotto</b> e incollalo in chat
+      (o rimettilo qui la prossima volta) per non perdere niente.
+    </div>
+    <div class="logform">
+      <button class="btn" id="expBtn">Copia codice</button>
+      <button class="btn" id="impBtn" style="background:var(--steel)">Importa codice</button>
+      <span id="ioMsg" style="font-size:12.5px;color:var(--green);align-self:center"></span>
+    </div>
+    <textarea id="ioBox" rows="3" spellcheck="false"
+      style="width:100%;font-family:ui-monospace,Menlo,monospace;font-size:11.5px;padding:10px;
+             border:1px solid var(--line);border-radius:9px;background:#fff;color:var(--ink);resize:vertical"
+      placeholder="Il codice compare qui quando premi Copia. Per importare, incollalo e premi Importa."></textarea>
+
+    <div class="callout">
+      <b>Come pesarti.</b> Stessa ora, appena sveglio, dopo il bagno, 3–4 volte a settimana.
+      Conta la media della settimana, mai il singolo giorno. Ripeti la BIA ogni 6–8 settimane
+      nelle stesse condizioni.
+    </div>
+    <div class="callout">
+      <b>Segnale d'allarme.</b> Se il peso scende ma la massa muscolare scende con lui, il deficit
+      è troppo aggressivo: alza di 200 kcal e ricontrolla. Se il peso è fermo per tre settimane
+      di fila, togli 150–200 kcal dai carboidrati della cena e aumenta i passi giornalieri.
+    </div>
+  </section>
+</div>
+</div>
+
+<script>
+(function () {
+  var TARGET = { kcal: 2300, p: 175, c: 220, f: 72 };
+  var START = 92.5, GOAL = 85.9;
+
+  var COLD = "Zero cottura";
+  var PREPPED = "Dal prep di domenica";
+
+  var BREAKFASTS = [
+    {title:"Kefir, pane e frutta", tempo:"3 min", tipo:"dolce",
+     items:"250 ml kefir senza lattosio · 60 g fette biscottate integrali · 25 g whey · 1 banana · 10 g mandorle", kcal:600, p:40, c:70, f:17},
+    {title:"Pancake proteici", tempo:"10 min", tipo:"dolce",
+     items:"2 uova · 30 g whey · 1 banana schiacciata · 40 g farina di riso, in padella antiaderente · 250 ml kefir a parte", kcal:650, p:48, c:62, f:18},
+    {title:"Smoothie e pane con miele", tempo:"3 min", tipo:"dolce",
+     items:"250 ml kefir · 30 g whey · 150 g frutti di bosco frullati insieme · 60 g pane integrale · 15 g miele · 10 g mandorle", kcal:615, p:39, c:72, f:16},
+    {title:"Uova, bresaola e pane", tempo:"8 min", tipo:"salata",
+     items:"3 uova · 40 g bresaola · 70 g pane integrale · 1 frutto · 150 ml kefir", kcal:640, p:43, c:52, f:26},
+    {title:"Frittata di albumi e pomodorini", tempo:"8 min", tipo:"salata",
+     items:"200 ml albume · 1 uovo intero · pomodorini · 70 g pane integrale · 10 g olio EVO · 150 g skyr · 1 frutto", kcal:620, p:46, c:58, f:19},
+    {title:"Pane, avocado e uova", tempo:"5 min", tipo:"salata",
+     items:"70 g pane integrale · 2 uova · 60 g avocado · 150 g skyr · 1 frutto", kcal:615, p:38, c:50, f:28},
+    {title:"Versione abbondante", tempo:"8 min", tipo:"salata",
+     items:"4 uova · 80 g pane integrale · 250 ml kefir senza lattosio · 1 frutto", kcal:780, p:48, c:66, f:34}
+  ];
+
+  var BK_DEFAULT = { lun:0, mar:3, mer:2, gio:0, ven:5, sab:6, dom:6 };
+
+  var DAYS = [
+    { id:"lun", name:"Lun", tag:"Allenamento A", train:true,
+      note:"<b>Giorno di allenamento.</b> Il pranzo è il pollo di domenica sera. Stasera cucini solo per te: niente avanzi da gestire.",
+      meals:[
+        {slot:"Spuntino", title:"Skyr", items:"150 g skyr senza lattosio", kcal:100, p:17, c:6, f:0},
+        {slot:"Pranzo · schiscetta", title:"Riso, pollo e verdure al forno", items:"250 g riso lesso · 180 g pollo · 200 g verdure al forno · 10 g olio EVO", kcal:685, p:48, c:72, f:20, tag:"Pronto in frigo"},
+        {slot:"Spuntino", title:"Bresaola e gallette", items:"80 g bresaola · 2 gallette di riso", kcal:230, p:26, c:16, f:5},
+        {slot:"Cena", title:"Tacchino, patate e broccoli", items:"200 g fesa di tacchino · 250 g patate · 200 g broccoli · 15 g olio EVO", kcal:655, p:52, c:50, f:24}
+      ]},
+    { id:"mar", name:"Mar", tag:"Riposo", train:false,
+      note:"<b>Stasera tocca alla Sessione 2</b>, venti minuti: quello che cucini copre la cena di oggi e i pranzi di mercoledì e giovedì. Le quantità da comprare sono nella scheda Roadmap.",
+      meals:[
+        {slot:"Spuntino", title:"Mela e parmigiano", items:"1 mela · 25 g Parmigiano 30 mesi (naturalmente privo di lattosio)", kcal:190, p:9, c:20, f:8},
+        {slot:"Pranzo · schiscetta", title:"Riso, pollo e pomodorini", items:"250 g riso lesso · 180 g pollo · pomodorini · basilico · 10 g olio EVO", kcal:685, p:48, c:72, f:20, tag:"Pronto in frigo"},
+        {slot:"Spuntino", title:"Shake proteico", items:"30 g whey isolate in acqua", kcal:120, p:24, c:3, f:1},
+        {slot:"Cena", title:"Manzo e patate", items:"200 g manzo · 300 g patate · insalata · 15 g olio EVO", kcal:720, p:50, c:58, f:27, tag:"Stasera Sessione 2 → vedi Roadmap"}
+      ]},
+    { id:"mer", name:"Mer", tag:"Riposo", train:false,
+      note:"Pranzo pronto da ieri sera. Giorno di riposo: punta a 8.000–10.000 passi.",
+      meals:[
+        {slot:"Spuntino", title:"Skyr", items:"150 g skyr senza lattosio", kcal:100, p:17, c:6, f:0},
+        {slot:"Pranzo · schiscetta", title:"Farro, manzo e uovo sodo", items:"200 g farro lesso · 200 g manzo · 1 uovo sodo · pomodorini · 10 g olio EVO", kcal:765, p:54, c:62, f:30, tag:"Pronto in frigo"},
+        {slot:"Spuntino", title:"Shake proteico", items:"30 g whey isolate in acqua", kcal:120, p:24, c:3, f:1},
+        {slot:"Cena", title:"Salmone e patate dolci", items:"180 g salmone · 250 g patate dolci · spinaci saltati · 10 g olio EVO", kcal:700, p:42, c:56, f:32}
+      ]},
+    { id:"gio", name:"Gio", tag:"Allenamento B", train:true,
+      note:"<b>Giorno di allenamento.</b> Ultimo pranzo della Sessione 2: cambia il condimento rispetto a ieri, limone e senape invece dei pomodorini, e sembra un altro piatto. <b>Stasera, mentre cuoce il merluzzo, monta il cous cous di domani</b> — cinque minuti.",
+      meals:[
+        {slot:"Spuntino", title:"Skyr", items:"150 g skyr senza lattosio", kcal:100, p:17, c:6, f:0},
+        {slot:"Pranzo · schiscetta", title:"Farro, manzo e insalata", items:"200 g farro lesso · 200 g manzo · insalata · limone e senape · 10 g olio EVO", kcal:700, p:47, c:62, f:26, tag:"Pronto in frigo"},
+        {slot:"Spuntino", title:"Shake e banana", items:"30 g whey isolate · 1 banana", kcal:200, p:24, c:24, f:1},
+        {slot:"Cena", title:"Merluzzo, patate e pane", items:"220 g merluzzo · 300 g patate · 40 g pane integrale · insalata · 15 g olio EVO", kcal:695, p:54, c:60, f:24}
+      ]},
+    { id:"ven", name:"Ven", tag:"Riposo", train:false,
+      note:"<b>Il pranzo l\u2019hai già pronto da ieri sera.</b> Tutto di dispensa: nessun avanzo fresco che ti aspetta in frigo per il weekend.",
+      meals:[
+        {slot:"Spuntino", title:"Mela e parmigiano", items:"1 mela · 25 g Parmigiano 30 mesi", kcal:190, p:9, c:20, f:8},
+        {slot:"Pranzo · schiscetta", title:"Cous cous, tonno e ceci", items:"90 g cous cous · 150 g tonno al naturale · 100 g ceci · pomodorini · 10 g olio EVO", kcal:710, p:55, c:78, f:20, tag:"Pronto in frigo"},
+        {slot:"Spuntino", title:"Bresaola e gallette", items:"60 g bresaola · 2 gallette di riso", kcal:180, p:20, c:16, f:3},
+        {slot:"Cena", title:"Orata al forno", items:"220 g filetto di orata o branzino · 60 g pane integrale · verdure al forno · 15 g olio EVO", kcal:650, p:53, c:44, f:28}
+      ]},
+    { id:"sab", name:"Sab", tag:"Cena fuori", train:false,
+      note:"<b>Cena fuori, senza sensi di colpa.</b> Secondo di carne o pesce alla griglia · un contorno di verdure sempre · un solo carboidrato (pane <i>oppure</i> patate <i>oppure</i> un primo) · niente fritti, panature o salse alla panna, anche per il lattosio · alcol max 1–2 calici, conta 120 kcal l'uno. Colazione e pranzo di oggi sono già tarati per lasciarti spazio.",
+      meals:[
+        {slot:"Pranzo", title:"Insalatona proteica", items:"220 g pollo o tacchino · insalatona ricca · 60 g pane integrale · 10 g olio EVO", kcal:640, p:59, c:44, f:22},
+        {slot:"Cena fuori", title:"Ristorante", items:"Griglia + verdure + un solo carboidrato", kcal:890, p:60, c:66, f:38}
+      ]},
+    { id:"dom", name:"Dom", tag:"Sessione 1", train:false,
+      note:"<b>Stasera tocca alla Sessione 1</b>, quarantacinque minuti: cena, base cereali della settimana e i pranzi di lunedì e martedì in un colpo solo. Le quantità da comprare sono nella scheda Roadmap.",
+      meals:[
+        {slot:"Pranzo", title:"Libero ma ragionato", items:"250 g di proteina magra · verdure abbondanti · una sola porzione di carboidrato", kcal:700, p:55, c:56, f:26},
+        {slot:"Cena", title:"Pollo e patate al forno", items:"220 g pollo · 250 g patate · verdure al forno · 15 g olio EVO", kcal:660, p:55, c:52, f:24, tag:"Stasera Sessione 1 → vedi Roadmap"}
+      ]}
+  ];
+
+  var SPESA = [
+    { cat:"Banco carne e pesce", items:[
+      ["Petto di pollo","900 g (ne usi 880)"],["Fesa di tacchino","200 g"],
+      ["Straccetti di manzo magro","600 g"],["Salmone fresco","200 g (ne usi 180)"],
+      ["Merluzzo, filetti","220 g"],["Orata o branzino, filetti","220 g"],
+      ["Bresaola","2 vaschette da 100 g (ne usi 180 g)"],["Uova","3 conf. da 6 (ne usi 15)"]
+    ]},
+    { cat:"Latticini senza lattosio", items:[
+      ["Kefir senza lattosio","2 bottiglie da 1 L (ne usi 1,4 L)"],
+      ["Skyr senza lattosio","3 vasetti da 150 g (450 g)"],
+      ["Parmigiano Reggiano 30 mesi","1 pezzo da 150 g (ne usi 50 g)"],
+      ["Albume pastorizzato","1 bottiglia da 500 ml (solo per la frittata)"]
+    ]},
+    { cat:"Cereali e dispensa", items:[
+      ["Riso basmati","1 pacco da 500 g (ne usi 350 g)"],
+      ["Farro perlato","1 pacco da 500 g (ne usi 300 g)"],
+      ["Cous cous","1 pacco da 500 g (ne usi 90 g)"],
+      ["Pane integrale","2 filoni da 500 g (ne usi 520 g)"],
+      ["Fette biscottate integrali","1 confezione da 300 g (ne usi 120 g)"],
+      ["Gallette di riso","1 confezione (ne usi 4)"],
+      ["Ceci lessati","1 barattolo da 400 g (ne usi 100 g sgocciolati)"],
+      ["Tonno al naturale","2 scatolette da 80 g (150 g sgocciolato)"],
+      ["Olio extravergine d'oliva","1 bottiglia (ne usi ~150 ml)"],
+      ["Mandorle","1 busta da 200 g (ne usi 30 g)"],
+      ["Noci","1 busta da 200 g (solo per le colazioni con noci)"],
+      ["Farina di riso","1 pacco da 500 g (solo per i pancake, 40 g)"],
+      ["Miele","1 vasetto (ne usi 15 g)"]
+    ]},
+    { cat:"Verdura", items:[
+      ["Zucchine, peperoni, melanzane","1,8 kg in tutto (1 kg per la Sessione 1)"],
+      ["Broccoli","400 g (ne usi 200 g)"],
+      ["Spinaci","1 busta da 200 g (ne usi 150 g)"],
+      ["Insalata mista","3 buste"],
+      ["Pomodorini","1 vaschetta da 300 g"],
+      ["Patate","2 kg"],
+      ["Patate dolci","300 g (ne usi 250 g)"],
+      ["Cipolle, aglio, limoni","q.b."]
+    ]},
+    { cat:"Frutta", items:[
+      ["Banane","3"],["Mele","2"],["Arance","2"],["Avocado","1"],
+      ["Frutti di bosco surgelati","1 busta da 300 g (ne usi 150 g)"]
+    ]},
+    { cat:"Integratori", items:[
+      ["Whey isolate senza lattosio","1 barattolo da 1 kg (170 g/settimana: dura ~6 settimane)"],
+      ["Vitamina D","da valutare col medico"]
+    ]}
+  ];
+
+  var PREP = [
+    { title:"Sessione 1 · domenica sera, 45 minuti", sub:"Cena di stasera + base cereali + i pranzi di lunedì e martedì", steps:[
+      "Accendi il forno a 180°.",
+      "Condisci 660 g di pollo con olio, sale, rosmarino e mezzo limone. Mettilo in teglia.",
+      "Seconda teglia: 1 kg di verdure miste a tocchi e 500 g di patate. Filo d'olio, sale, mescola con le mani.",
+      "Tutte e due in forno, 25–30 minuti.",
+      "Intanto due pentole d'acqua salata sul fuoco: 350 g di riso in una, 300 g di farro nell'altra. Riso 10 minuti, farro 25.",
+      "Scola e allarga su un vassoio largo: raffredda in 5 minuti invece di 40. Sgrana con un filo d'olio.",
+      "Metti 4 uova in acqua fredda, porta a bollore, conta 9 minuti, poi acqua ghiacciata. Due vanno nei pranzi di mercoledì e giovedì, due restano di scorta.",
+      "Sforna. Un terzo del pollo e le patate nel piatto: è la tua cena.",
+      "Il resto del pollo in due contenitori, con il riso e le verdure. Sono i pranzi di lunedì e martedì.",
+      "Farro e uova sode restano da parte in frigo: servono martedì sera."
+    ]},
+    { title:"Sessione 2 · martedì sera, 20 minuti", sub:"Cena di stasera + i pranzi di mercoledì e giovedì", steps:[
+      "Metti 900 g di patate a lessare o in forno.",
+      "Scalda una padella larga a fuoco vivo con un filo d'olio.",
+      "Butta 600 g di straccetti di manzo. Non ammassarli: se la padella è piccola, falli in due riprese.",
+      "Tre o quattro minuti in tutto. Sale e pepe alla fine, mai prima.",
+      "Un terzo nel piatto con le patate e l'insalata: cena.",
+      "Il resto in due contenitori, con il farro di domenica e un uovo sodo ciascuno.",
+      "Mercoledì condisci con pomodorini, giovedì con limone e senape. Stesso manzo, due piatti diversi."
+    ]},
+    { title:"Sessione 3 · giovedì sera, 5 minuti", sub:"Il pranzo di venerdì, mentre la cena è sul fuoco", steps:[
+      "Mentre il merluzzo cuoce, metti 90 g di cous cous direttamente nel contenitore della schiscetta.",
+      "Acqua bollente a coprire di un dito, coperchio (o un piatto sopra), cinque minuti.",
+      "Sgrana con la forchetta.",
+      "Aggiungi 150 g di tonno sgocciolato, 100 g di ceci, i pomodorini a metà e un filo d'olio. Mescola.",
+      "Chiudi e in frigo. Riposando una notte diventa più buono, non peggio: è l'unico pranzo della settimana che ci guadagna.",
+      "Se giovedì sera salti, si fa venerdì mattina in sette minuti. Ma è l'unica volta che devi correre."
+    ]},
+    { title:"La riserva del freezer", sub:"Per la giornata storta", steps:[
+      "Quando avanza più del previsto, congela subito in monoporzione: freddo, non tiepido.",
+      "Etichetta con nastro di carta, contenuto e data. Senza etichetta, in due settimane è un mistero.",
+      "Tieni sempre due schiscette complete di riserva. Coprono la sera che salti la cena o il giorno che non hai voglia.",
+      "Ruota la riserva: quando ne usi una, il primo avanzo la rimpiazza.",
+      "Riso e farro si congelano benissimo già porzionati. Scongelali in frigo la sera prima."
+    ]}
+  ];
+
+  // ---------- state ----------
+  var state = { day:"lun", checked:{}, spesa:{}, weights:[], breakfast:{} };
+  DAYS.forEach(function(d){ state.checked[d.id] = []; state.breakfast[d.id] = BK_DEFAULT[d.id]; });
+
+  var store = {
+    save: function () {
+      try {
+        if (window.storage && window.storage.set) {
+          window.storage.set("alex-piano-v1", JSON.stringify({
+            checked: state.checked, spesa: state.spesa, weights: state.weights, breakfast: state.breakfast
+          }));
+        }
+      } catch (e) { /* sessione in memoria */ }
+    },
+    load: function (cb) {
+      try {
+        if (window.storage && window.storage.get) {
+          window.storage.get("alex-piano-v1").then(function (r) {
+            if (r && r.value) {
+              var d = JSON.parse(r.value);
+              if (d.checked) state.checked = d.checked;
+              if (d.spesa) state.spesa = d.spesa;
+              if (d.weights) state.weights = d.weights;
+              if (d.breakfast) state.breakfast = d.breakfast;
+            }
+            cb();
+          }).catch(function(){ cb(); });
+          return;
+        }
+      } catch (e) { /* fallback */ }
+      cb();
+    }
+  };
+
+  var $ = function (id) { return document.getElementById(id); };
+  function esc(s){ return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;"); }
+  function it(n, dec) { return n.toFixed(dec == null ? 0 : dec).replace(".", ","); }
+  function dayById(id){ for (var i=0;i<DAYS.length;i++) if (DAYS[i].id===id) return DAYS[i]; return DAYS[0]; }
+
+  // ---------- render: rail ----------
+  function renderRail() {
+    $("rail").innerHTML = DAYS.map(function (d) {
+      return '<button class="day' + (d.train ? " train" : "") + '" data-day="' + d.id +
+        '" aria-pressed="' + (d.id === state.day) + '">' +
+        '<div class="d-name">' + d.name + '</div><div class="d-tag">' + d.tag + '</div></button>';
+    }).join("");
+  }
+
+  // ---------- render: meals + budget ----------
+  function renderDay() {
+    var d = dayById(state.day);
+    var done = state.checked[d.id] || [];
+    var bk = BREAKFASTS[state.breakfast[d.id]];
+    var meals = [bk].concat(d.meals);
+
+    var chips = BREAKFASTS.map(function (b, i) {
+      var on = state.breakfast[d.id] === i;
+      return '<button class="chip' + (on ? " on" : "") + '" data-bk="' + i + '">' + esc(b.title) + "</button>";
+    }).join("");
+
+    $("meals").innerHTML = meals.map(function (m, i) {
+      var on = done.indexOf(i) > -1;
+      var isBk = i === 0;
+      var tag = m.tag ? '<div class="note' + (m.tag === COLD ? " cold" : "") + '">' + m.tag + "</div>" : "";
+      return '<div class="meal' + (on ? " done" : "") + '" data-meal="' + i + '" role="checkbox" tabindex="0" aria-checked="' + on + '">' +
+        '<div class="box"></div><div class="meal-body">' +
+        '<div class="slot">' + (isBk ? "Colazione · " + esc(m.tipo) + " · " + esc(m.tempo) : esc(m.slot)) + "</div>" +
+        '<div class="title">' + esc(m.title) + "</div>" +
+        '<div class="items">' + esc(m.items) + "</div>" +
+        '<div class="macros mono"><span><b>' + m.kcal + '</b> kcal</span><span>P <b>' + m.p +
+        '</b></span><span>C <b>' + m.c + '</b></span><span>G <b>' + m.f + "</b></span></div>" +
+        tag + "</div></div>" +
+        (isBk ? '<div class="chips" id="bkChips">' + chips + "</div>" : "");
+    }).join("");
+
+    $("dayNote").innerHTML = d.note;
+    $("budgetLbl").textContent = "Consumato — " + d.name;
+
+    var tot = { kcal:0, p:0, c:0, f:0 };
+    done.forEach(function (i) {
+      var m = meals[i];
+      if (!m) return;
+      tot.kcal += m.kcal; tot.p += m.p; tot.c += m.c; tot.f += m.f;
+    });
+
+    var rows = [
+      ["kcal", tot.kcal, TARGET.kcal, "var(--crimson)", ""],
+      ["Prot", tot.p, TARGET.p, "var(--green)", " g"],
+      ["Carbo", tot.c, TARGET.c, "var(--amber)", " g"],
+      ["Grassi", tot.f, TARGET.f, "var(--steel)", " g"]
+    ];
+    $("bars").innerHTML = rows.map(function (r) {
+      var pct = Math.min(100, Math.round(r[1] / r[2] * 100));
+      return '<div class="bar-line"><span class="name">' + r[0] + "</span>" +
+        '<div class="bar-track"><div class="bar-fill" style="width:' + pct + "%;background:" + r[3] + '"></div></div>' +
+        '<span class="val mono"><b>' + r[1] + "</b> / " + r[2] + r[4] + "</span></div>";
+    }).join("");
+  }
+
+  // ---------- render: spesa ----------
+  function renderSpesa() {
+    var tot = 0, done = 0;
+    $("spesaList").innerHTML = SPESA.map(function (g) {
+      var rows = g.items.map(function (it2) {
+        var key = g.cat + "|" + it2[0];
+        var on = !!state.spesa[key];
+        tot++; if (on) done++;
+        return '<div class="item' + (on ? " done" : "") + '" data-key="' + esc(key) +
+          '" role="checkbox" tabindex="0" aria-checked="' + on + '">' +
+          '<div class="box"></div><div class="item-name">' + esc(it2[0]) + "</div>" +
+          '<div class="qty mono">' + esc(it2[1]) + "</div></div>";
+      }).join("");
+      return '<div class="cat">' + esc(g.cat) + "</div>" + rows;
+    }).join("");
+    $("spesaFill").style.width = (tot ? Math.round(done / tot * 100) : 0) + "%";
+    $("spesaVal").innerHTML = "<b>" + done + "</b> / " + tot;
+  }
+
+  // ---------- render: prep ----------
+  function renderPrep() {
+    $("prepList").innerHTML = PREP.map(function (sess) {
+      return '<div class="cat">' + esc(sess.title) + "</div>" +
+        '<div class="sess-sub">' + esc(sess.sub) + "</div>" +
+        sess.steps.map(function (st, i) {
+          return '<div class="prep-step"><div class="prep-n mono">' + (i + 1) +
+                 "</div><div>" + esc(st) + "</div></div>";
+        }).join("");
+    }).join("");
+  }
+
+  // ---------- render: progressi ----------
+  function renderWeights() {
+    var w = state.weights.slice().sort(function (a, b) { return a.d < b.d ? 1 : -1; });
+    if (!w.length) {
+      $("wTable").innerHTML = '<div class="empty">Nessuna pesata registrata. Aggiungi la prima qui sopra.</div>';
+      $("trackFill").style.width = "0%";
+      $("trackNow").innerHTML = '<b class="mono">—</b>';
+      return;
+    }
+    $("wTable").innerHTML = '<table><thead><tr><th>Data</th><th>Peso</th><th>Dal via</th><th>All\'obiettivo</th></tr></thead><tbody>' +
+      w.map(function (r) {
+        var dFrom = r.kg - START, dTo = r.kg - GOAL;
+        return "<tr><td class='mono'>" + r.d.split("-").reverse().join("/") + "</td>" +
+          "<td class='mono'><b>" + it(r.kg, 1) + "</b> kg</td>" +
+          "<td class='mono " + (dFrom <= 0 ? "neg" : "pos") + "'>" + (dFrom > 0 ? "+" : "") + it(dFrom, 1) + " kg</td>" +
+          "<td class='mono'>" + (dTo > 0 ? "ancora " + it(dTo, 1) + " kg" : "obiettivo raggiunto") + "</td></tr>";
+      }).join("") + "</tbody></table>";
+
+    var last = w[0].kg;
+    var pct = Math.max(0, Math.min(100, (START - last) / (START - GOAL) * 100));
+    $("trackFill").style.width = pct + "%";
+    $("trackNow").innerHTML = "oggi <b>" + it(last, 1) + "</b> kg · " + Math.round(pct) + "%";
+  }
+
+  // ---------- events ----------
+  $("rail").addEventListener("click", function (e) {
+    var b = e.target.closest("[data-day]"); if (!b) return;
+    state.day = b.getAttribute("data-day");
+    renderRail(); renderDay();
+  });
+
+  function toggleMeal(el) {
+    var i = parseInt(el.getAttribute("data-meal"), 10);
+    var arr = state.checked[state.day] || (state.checked[state.day] = []);
+    var pos = arr.indexOf(i);
+    if (pos > -1) arr.splice(pos, 1); else arr.push(i);
+    renderDay(); store.save();
+  }
+  $("meals").addEventListener("click", function (e) {
+    var chip = e.target.closest("[data-bk]");
+    if (chip) {
+      state.breakfast[state.day] = parseInt(chip.getAttribute("data-bk"), 10);
+      renderDay(); store.save(); return;
+    }
+    var el = e.target.closest("[data-meal]"); if (el) toggleMeal(el);
+  });
+  $("meals").addEventListener("keydown", function (e) {
+    if (e.key !== " " && e.key !== "Enter") return;
+    var el = e.target.closest("[data-meal]"); if (el) { e.preventDefault(); toggleMeal(el); }
+  });
+
+  function toggleItem(el) {
+    var k = el.getAttribute("data-key");
+    if (state.spesa[k]) delete state.spesa[k]; else state.spesa[k] = 1;
+    renderSpesa(); store.save();
+  }
+  $("spesaList").addEventListener("click", function (e) {
+    var el = e.target.closest("[data-key]"); if (el) toggleItem(el);
+  });
+  $("spesaList").addEventListener("keydown", function (e) {
+    if (e.key !== " " && e.key !== "Enter") return;
+    var el = e.target.closest("[data-key]"); if (el) { e.preventDefault(); toggleItem(el); }
+  });
+
+  $("resetDay").addEventListener("click", function () {
+    state.checked[state.day] = []; renderDay(); store.save();
+  });
+  $("resetSpesa").addEventListener("click", function () {
+    state.spesa = {}; renderSpesa(); store.save();
+  });
+
+  $("addW").addEventListener("click", function () {
+    var d = $("wDate").value, kg = parseFloat($("wKg").value);
+    if (!d || !kg || kg < 30 || kg > 250) return;
+    state.weights = state.weights.filter(function (r) { return r.d !== d; });
+    state.weights.push({ d: d, kg: kg });
+    $("wKg").value = "";
+    renderWeights(); store.save();
+  });
+
+  $("expBtn").addEventListener("click", function () {
+    var code = JSON.stringify({ w: state.weights, s: state.spesa, c: state.checked, b: state.breakfast });
+    $("ioBox").value = code;
+    $("ioBox").select();
+    try { document.execCommand("copy"); $("ioMsg").textContent = "Copiato."; }
+    catch (e) { $("ioMsg").textContent = "Seleziona il testo e copialo a mano."; }
+    setTimeout(function () { $("ioMsg").textContent = ""; }, 4000);
+  });
+
+  $("impBtn").addEventListener("click", function () {
+    var v = $("ioBox").value.trim();
+    if (!v) { $("ioMsg").textContent = "Incolla prima il codice."; return; }
+    try {
+      var d = JSON.parse(v);
+      if (d.w) state.weights = d.w;
+      if (d.s) state.spesa = d.s;
+      if (d.c) state.checked = d.c;
+      if (d.b) state.breakfast = d.b;
+      renderDay(); renderSpesa(); renderWeights(); store.save();
+      $("ioMsg").textContent = "Importato.";
+    } catch (e) { $("ioMsg").textContent = "Codice non valido."; }
+    setTimeout(function () { $("ioMsg").textContent = ""; }, 4000);
+  });
+
+  Array.prototype.forEach.call(document.querySelectorAll(".tab"), function (t) {
+    t.addEventListener("click", function () {
+      Array.prototype.forEach.call(document.querySelectorAll(".tab"), function (x) {
+        x.setAttribute("aria-selected", x === t);
+      });
+      ["piano", "spesa", "prep", "progressi"].forEach(function (n) {
+        $("tab-" + n).classList.toggle("hidden", n !== t.getAttribute("data-tab"));
+      });
+    });
+  });
+
+  // ---------- boot ----------
+  var today = new Date();
+  $("wDate").value = today.toISOString().slice(0, 10);
+  var idx = (today.getDay() + 6) % 7;
+  state.day = DAYS[idx].id;
+
+  store.load(function () {
+    renderRail(); renderDay(); renderSpesa(); renderPrep(); renderWeights();
+  });
+})();
+</script>
